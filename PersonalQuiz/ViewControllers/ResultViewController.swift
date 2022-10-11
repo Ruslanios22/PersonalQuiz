@@ -8,30 +8,57 @@
 import UIKit
 
 class ResultViewController: UIViewController {
-
+    
     @IBOutlet var emojiLabel: UILabel!
     @IBOutlet var textLabel: UILabel!
     
-    var answersChosen: [Answer] = []
+    var answers: [Answer]!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.hidesBackButton = true
-        emojiLabel.text = "Вы - \(getAnimal(from: answersChosen).rawValue)"
-        textLabel.text = getAnimal(from: answersChosen).definition
+        updateResult()
     }
     
     @IBAction func doneButtonPressed(_ sender: UIBarButtonItem) {
         navigationController?.dismiss(animated: true)
     }
-    
-    private func getAnimal(from answers: [Answer]) -> Animal {
-        var animals: [Animal] = []
+}
 
-        for answer in answers {
-            animals.append(answer.animal)
+// MARK: - Private Methods
+extension ResultViewController {
+    private func updateResult() {
+        var frequencyOfAnimals: [Animal: Int] = [:]
+        let animals = answers.map { $0.animal }
+
+        for animal in animals {
+            if let animalTypeCount = frequencyOfAnimals[animal] {
+                frequencyOfAnimals.updateValue(animalTypeCount + 1, forKey: animal)
+            } else {
+                frequencyOfAnimals[animal] = 1
+            }
         }
+        
+        /*
+         for animal in animals {
+            frequencyOfAnimals[animal] = (frequencyOfAnimals[animal] ?? 0) + 1
+         }
+         */
+        
+        /*
+         for animal in animals {
+            frequencyOfAnimals[animal, default: 0] += 1
+         }
+         */
 
-        return animals.sorted { $0.rawValue.count > $1.rawValue.count }.last ?? .cat
+        let sortedFrequencyOfAnimals = frequencyOfAnimals.sorted { $0.value > $1.value }
+        guard let mostFrequencyAnimal = sortedFrequencyOfAnimals.first?.key else { return }
+        
+        updateUI(with: mostFrequencyAnimal)
+    }
+    
+    private func updateUI(with animal: Animal) {
+        emojiLabel.text = "Вы - \(animal.rawValue)!"
+        textLabel.text = animal.definition
     }
 }
